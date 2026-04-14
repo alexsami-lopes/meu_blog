@@ -14,16 +14,20 @@ export default async function handler(req, res) {
             const response = await fetch(url, {
                 method: "POST",
                 headers: {
-                    "Content-Type": "application/json"
+                    // MUDANÇA AQUI:
+                    "Content-Type": "text/plain;charset=utf-8" 
                 },
                 body: JSON.stringify(req.body)
             });
 
-            const data = await response.json();
-
-            // Se o limite do Apps Script foi atingido, ele pode retornar erro 429 ou uma msg específica
-            if (data.erro === "Limite diário atingido") {
-                 return res.status(429).json(data);
+            // O Google costuma fazer um redirecionamento (302) após o POST.
+            // Se o JSON falhar, pegamos o texto puro para evitar que a Vercel quebre.
+            let data;
+            const textResponse = await response.text();
+            try {
+                data = JSON.parse(textResponse);
+            } catch (e) {
+                data = { msg: textResponse };
             }
 
             return res.status(200).json(data);
