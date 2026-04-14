@@ -1,0 +1,35 @@
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Meu Blog</title>
+</head>
+
+<body>
+
+    <h1>Meu Blog</h1>
+
+    <div id="posts"></div>
+
+    <a href="/novo_post.html">Novo Post</a>
+
+    <script>
+        async function carregar() {
+            const res = await fetch("/api/posts");
+            const posts = await res.json();
+
+            const div = document.getElementById("posts");
+
+            posts.forEach(p => {
+                div.innerHTML += `
+                    <h2>${p.author}</h2>
+                    <p>${p.message}</p>
+                    <hr>
+                `;
+            });
+        }
+
+        carregar();
+    </script>
+
+</body>
+</html>
