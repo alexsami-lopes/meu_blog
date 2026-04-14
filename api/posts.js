@@ -1,21 +1,65 @@
-let posts = [];
+const LIMITE = 100;
 
-export default function handler(req, res) {
-    if (req.method === "PUT") {
-        const { action, author, message } = req.body;
+// cache em memória (pode resetar, mas ajuda)
+let contador = 0;
+let dataAtual = new Date().toDateString();
 
-        if (action !== "put") {
-            return res.status(400).json({ msg: "Ação inválida" });
+function checarLimite() {
+    const hoje = new Date().toDateString();
+
+    if (hoje !== dataAtual) {
+        dataAtual = hoje;
+        contador = 0;
+    }
+
+    if (contador >= LIMITE) {
+        return false;
+    }
+
+    contador++;
+    return true;
+}
+
+export default async function handler(req, res) {
+    const url = process.env.GSHEET_URL;
+
+    // 🔥 controle de limite
+    if (!checarLimite()) {
+        return res.status(429).json({
+            erro: "Limite diário de 100 requisições atingido"
+        });
+    }
+
+    try {
+        // ===== GET =====
+        if (req.method === "GET") {
+            const response = await fetch(url);
+            const data = await response.json();
+
+            return res.status(200).json(data);
         }
 
-        posts.push({ author, message });
+        // ===== PUT =====
+        if (req.method === "PUT") {
+            const response = await fetch(url, {
+                method: "POST", // Apps Script usa POST
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(req.body)
+            });
 
-        return res.status(200).json({ msg: "Post salvo!" });
+            const data = await response.json();
+
+            return res.status(200).json(data);
+        }
+
+        return res.status(405).end();
+
+    } catch (err) {
+        return res.status(500).json({
+            erro: "Erro ao acessar Google Sheets",
+            detalhe: err.message
+        });
     }
-
-    if (req.method === "GET") {
-        return res.status(200).json(posts);
-    }
-
-    return res.status(405).end();
 }

@@ -3,40 +3,41 @@
     <meta charset="UTF-8">
     <title>Novo Post</title>
 </head>
-
 <body>
 
-    <h2>Criar Post</h2>
+<h2>Criar Post</h2>
 
-    Autor: <br>
-    <input type="text" id="author"><br><br>
+Autor:<br>
+<input id="author"><br><br>
 
-    Mensagem: <br>
-    <textarea id="message"></textarea><br><br>
+Mensagem:<br>
+<textarea id="message"></textarea><br><br>
 
-    <button onclick="enviar()">Publicar</button>
+<button onclick="enviar()">Publicar</button>
 
-    <script>
-        async function enviar() {
-            const author = document.getElementById("author").value;
-            const message = document.getElementById("message").value;
+<script>
+async function enviar() {
+    const res = await fetch("/api/posts", {
+        method: "PUT",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+            action: "put",
+            author: document.getElementById("author").value,
+            message: document.getElementById("message").value
+        })
+    });
 
-            const resposta = await fetch("/api/posts", {
-                method: "PUT",
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify({
-                    action: "put",
-                    author: author,
-                    message: message
-                })
-            });
+    const data = await res.json();
 
-            const data = await resposta.json();
-            alert(data.msg);
-        }
-    </script>
+    if (data.erro) {
+        alert(data.erro);
+    } else {
+        alert("Post salvo!");
+    }
+}
+</script>
 
 </body>
 </html>

@@ -1,35 +1,40 @@
 <html>
 <head>
     <meta charset="UTF-8">
-    <title>Meu Blog</title>
+    <title>Blog</title>
 </head>
-
 <body>
 
-    <h1>Meu Blog</h1>
+<h1>Meu Blog</h1>
 
-    <div id="posts"></div>
+<div id="posts"></div>
 
-    <a href="/novo_post.html">Novo Post</a>
+<a href="/novo_post.html">Novo Post</a>
 
-    <script>
-        async function carregar() {
-            const res = await fetch("/api/posts");
-            const posts = await res.json();
+<script>
+async function carregar() {
+    const res = await fetch("/api/posts");
+    const data = await res.json();
 
-            const div = document.getElementById("posts");
+    if (data.erro) {
+        document.body.innerHTML += "<p>" + data.erro + "</p>";
+        return;
+    }
 
-            posts.forEach(p => {
-                div.innerHTML += `
-                    <h2>${p.author}</h2>
-                    <p>${p.message}</p>
-                    <hr>
-                `;
-            });
-        }
+    const div = document.getElementById("posts");
 
-        carregar();
-    </script>
+    data.forEach(p => {
+        div.innerHTML += `
+            <h3>${p.author}</h3>
+            <p>${p.message}</p>
+            <small>${p.date}</small>
+            <hr>
+        `;
+    });
+}
+
+carregar();
+</script>
 
 </body>
 </html>
